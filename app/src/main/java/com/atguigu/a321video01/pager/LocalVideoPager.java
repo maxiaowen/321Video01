@@ -104,10 +104,11 @@ public class LocalVideoPager extends BaseFragment {
                         String data = cursor.getString(3);
                         //往集合里添加数据
                         mediaItems.add(new MediaItem(name,duration,size,data));
-                        handler.sendEmptyMessage(0);
+
                     }
                     cursor.close();
                 }
+                handler.sendEmptyMessage(0);
             }
         }.start();
     }
