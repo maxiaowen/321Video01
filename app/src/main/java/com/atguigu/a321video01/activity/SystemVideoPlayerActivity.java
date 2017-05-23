@@ -1,11 +1,16 @@
 package com.atguigu.a321video01.activity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -17,6 +22,9 @@ import android.widget.VideoView;
 
 import com.atguigu.a321video01.R;
 import com.atguigu.a321video01.utils.Utils;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class SystemVideoPlayerActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -44,6 +52,8 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     private Button btnStartPause;
     private Button btnNext;
     private Button btnSwitchScreen;
+
+    private MyBroadCastReceiver receiver;
 
     /**
      * Find the Views in the layout<br />
@@ -117,7 +127,8 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        utils = new Utils();
+        initData();
+
         findViews();
         uri = getIntent().getData();
         setListener();
@@ -125,6 +136,45 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         vv.setVideoURI(uri);
         //设置控制面板
 //        vv.setMediaController(new MediaController(this));
+    }
+
+    private void initData() {
+        utils = new Utils();
+        //注册监听电量变化广播
+        receiver = new MyBroadCastReceiver();
+        IntentFilter intentFilter  = new IntentFilter();
+        //监听电量变化
+        intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
+        registerReceiver(receiver,intentFilter);
+    }
+    class MyBroadCastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int level = intent.getIntExtra("level", 0);//主线程
+            Log.e("TAG","level=="+level);
+            setBatteryView(level);
+
+        }
+    }
+    private void setBatteryView(int level) {
+        if(level <=0){
+            ivBattery.setImageResource(R.drawable.ic_battery_0);
+        }else if(level <= 10){
+            ivBattery.setImageResource(R.drawable.ic_battery_10);
+        }else if(level <=20){
+            ivBattery.setImageResource(R.drawable.ic_battery_20);
+        }else if(level <=40){
+            ivBattery.setImageResource(R.drawable.ic_battery_40);
+        }else if(level <=60){
+            ivBattery.setImageResource(R.drawable.ic_battery_60);
+        }else if(level <=80){
+            ivBattery.setImageResource(R.drawable.ic_battery_80);
+        }else if(level <=100){
+            ivBattery.setImageResource(R.drawable.ic_battery_100);
+        }else {
+            ivBattery.setImageResource(R.drawable.ic_battery_100);
+        }
     }
 
     private Handler handler = new Handler(){
@@ -137,12 +187,21 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                     int currentPosition = vv.getCurrentPosition();
                     seekbarVideo.setProgress(currentPosition);
                     tvCurrentTime.setText(utils.stringForTime(currentPosition));
-                    handler.sendEmptyMessageDelayed(PROGRESS,1000);
+                    tvSystemTime.setText(getSystemTime());
+                    sendEmptyMessageDelayed(PROGRESS,1000);
                     break;
             }
-
         }
     };
+    /**
+     * 得到系统时间
+     * @return
+     */
+    public String getSystemTime() {
+        SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
+        return format.format(new Date());
+    }
+
 
     //监听方法
     private void setListener() {
@@ -205,7 +264,15 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
     @Override
     protected void onDestroy() {
+        
+        if(handler != null) {
+            handler.removeCallbacksAndMessages(null);
+            handler = null;
+        }
+        if(receiver != null) {
+            unregisterReceiver(receiver);
+            receiver = null;
+        }
         super.onDestroy();
-        handler.removeCallbacksAndMessages(null);
     }
 }
