@@ -1,16 +1,19 @@
 package com.atguigu.a321video01.pager;
 
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.atguigu.a321video01.R;
+import com.atguigu.a321video01.activity.SystemVideoPlayerActivity;
 import com.atguigu.a321video01.adapter.LocalVideoAdapter;
 import com.atguigu.a321video01.domain.MediaItem;
 import com.atguigu.a321video01.fragment.BaseFragment;
@@ -37,6 +40,15 @@ public class LocalVideoPager extends BaseFragment {
         tv_nodata = (TextView) view.findViewById(R.id.tv_nodata);
 
 
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                MediaItem item = adapter.getItem(position);
+                Intent intent = new Intent(context, SystemVideoPlayerActivity.class);
+                intent.setDataAndType(Uri.parse(item.getData()),"video/*");
+                startActivity(intent);
+            }
+        });
 
         return view;
     }
