@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
@@ -43,9 +44,16 @@ public class LocalVideoPager extends BaseFragment {
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                MediaItem item = adapter.getItem(position);
+//                MediaItem item = adapter.getItem(position);
+//                Intent intent = new Intent(context, SystemVideoPlayerActivity.class);
+//                intent.setDataAndType(Uri.parse(item.getData()),"video/*");
+//                startActivity(intent);
+
                 Intent intent = new Intent(context, SystemVideoPlayerActivity.class);
-                intent.setDataAndType(Uri.parse(item.getData()),"video/*");
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("videolist",mediaItems);
+                intent.putExtra("position",position);
+                intent.putExtras(bundle);
                 startActivity(intent);
             }
         });

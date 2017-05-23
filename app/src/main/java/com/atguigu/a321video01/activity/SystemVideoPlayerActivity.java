@@ -21,9 +21,11 @@ import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.atguigu.a321video01.R;
+import com.atguigu.a321video01.domain.MediaItem;
 import com.atguigu.a321video01.utils.Utils;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class SystemVideoPlayerActivity extends AppCompatActivity implements View.OnClickListener {
@@ -54,6 +56,9 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     private Button btnSwitchScreen;
 
     private MyBroadCastReceiver receiver;
+
+    private ArrayList<MediaItem> mediaItems;
+    private int position;
 
     /**
      * Find the Views in the layout<br />
@@ -128,73 +133,94 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initData();
-
         findViews();
-        uri = getIntent().getData();
+        getData();
         setListener();
-        //设置播放地址
-        vv.setVideoURI(uri);
+        setData();
+
         //设置控制面板
 //        vv.setMediaController(new MediaController(this));
+    }
+
+    private void setData() {
+        if (mediaItems != null && mediaItems.size() > 0) {
+
+            MediaItem mediaItem = mediaItems.get(position);
+            tvName.setText(mediaItem.getName());
+            vv.setVideoPath(mediaItem.getData());
+        } else if (uri != null) {
+            //设置播放地址
+            vv.setVideoURI(uri);
+        }
+    }
+
+    private void getData() {
+        uri = getIntent().getData();
+        mediaItems = (ArrayList<MediaItem>) getIntent().getSerializableExtra("videolist");
+        position = getIntent().getIntExtra("position", 0);
     }
 
     private void initData() {
         utils = new Utils();
         //注册监听电量变化广播
         receiver = new MyBroadCastReceiver();
-        IntentFilter intentFilter  = new IntentFilter();
+        IntentFilter intentFilter = new IntentFilter();
         //监听电量变化
         intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
-        registerReceiver(receiver,intentFilter);
+        registerReceiver(receiver, intentFilter);
     }
+
     class MyBroadCastReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
             int level = intent.getIntExtra("level", 0);//主线程
-            Log.e("TAG","level=="+level);
+            Log.e("TAG", "level==" + level);
             setBatteryView(level);
 
         }
     }
+
     private void setBatteryView(int level) {
-        if(level <=0){
+        if (level <= 0) {
             ivBattery.setImageResource(R.drawable.ic_battery_0);
-        }else if(level <= 10){
+        } else if (level <= 10) {
             ivBattery.setImageResource(R.drawable.ic_battery_10);
-        }else if(level <=20){
+        } else if (level <= 20) {
             ivBattery.setImageResource(R.drawable.ic_battery_20);
-        }else if(level <=40){
+        } else if (level <= 40) {
             ivBattery.setImageResource(R.drawable.ic_battery_40);
-        }else if(level <=60){
+        } else if (level <= 60) {
             ivBattery.setImageResource(R.drawable.ic_battery_60);
-        }else if(level <=80){
+        } else if (level <= 80) {
             ivBattery.setImageResource(R.drawable.ic_battery_80);
-        }else if(level <=100){
+        } else if (level <= 100) {
             ivBattery.setImageResource(R.drawable.ic_battery_100);
-        }else {
+        } else {
             ivBattery.setImageResource(R.drawable.ic_battery_100);
         }
     }
 
-    private Handler handler = new Handler(){
+    private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             switch (msg.what) {
-                case PROGRESS :
+                case PROGRESS:
 
                     int currentPosition = vv.getCurrentPosition();
                     seekbarVideo.setProgress(currentPosition);
                     tvCurrentTime.setText(utils.stringForTime(currentPosition));
                     tvSystemTime.setText(getSystemTime());
-                    sendEmptyMessageDelayed(PROGRESS,1000);
+                    sendEmptyMessageDelayed(PROGRESS, 1000);
                     break;
             }
         }
     };
+
     /**
      * 得到系统时间
+     *
      * @return
      */
     public String getSystemTime() {
@@ -264,12 +290,12 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
     @Override
     protected void onDestroy() {
-        
-        if(handler != null) {
+
+        if (handler != null) {
             handler.removeCallbacksAndMessages(null);
             handler = null;
         }
-        if(receiver != null) {
+        if (receiver != null) {
             unregisterReceiver(receiver);
             receiver = null;
         }
