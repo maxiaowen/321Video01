@@ -3,12 +3,15 @@ package com.atguigu.a321video01.pager;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.atguigu.a321video01.R;
+import com.atguigu.a321video01.adapter.LocalVideoAdapter;
 import com.atguigu.a321video01.domain.MediaItem;
 import com.atguigu.a321video01.fragment.BaseFragment;
 
@@ -23,6 +26,7 @@ public class LocalVideoPager extends BaseFragment {
     private ListView lv;
     private TextView tv_nodata;
     private ArrayList<MediaItem> mediaItems;
+    private LocalVideoAdapter adapter;
     
 
     @Override
@@ -33,13 +37,30 @@ public class LocalVideoPager extends BaseFragment {
         tv_nodata = (TextView) view.findViewById(R.id.tv_nodata);
 
 
+
         return view;
     }
+
     public void initData(){
         super.initData();
         //得到数据
         getData();
     }
+
+    private Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if(mediaItems != null && mediaItems.size() > 0) {
+                tv_nodata.setVisibility(View.GONE);
+                adapter = new LocalVideoAdapter(context,mediaItems);
+                lv.setAdapter(adapter);
+            }else {
+                tv_nodata.setVisibility(View.VISIBLE);
+            }
+
+        }
+    };
 
     public void getData() {
 
@@ -63,6 +84,7 @@ public class LocalVideoPager extends BaseFragment {
                         String data = cursor.getString(3);
                         //往集合里添加数据
                         mediaItems.add(new MediaItem(name,duration,size,data));
+                        handler.sendEmptyMessage(0);
                     }
                     cursor.close();
                 }
