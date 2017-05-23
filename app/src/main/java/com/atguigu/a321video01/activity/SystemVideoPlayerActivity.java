@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.MediaController;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -89,6 +88,14 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         } else if ( v == btnPre ) {
             // Handle clicks for btnPre
         } else if ( v == btnStartPause ) {
+            if(vv.isPlaying()) {
+                vv.pause();
+                btnStartPause.setBackgroundResource(R.drawable.btn_start_selector);
+            }else {
+
+                vv.start();
+                btnStartPause.setBackgroundResource(R.drawable.btn_pause_selector);
+            }
             // Handle clicks for btnStartPause
         } else if ( v == btnNext ) {
             // Handle clicks for btnNext
@@ -108,7 +115,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         //设置播放地址
         vv.setVideoURI(uri);
         //设置控制面板
-        vv.setMediaController(new MediaController(this));
+//        vv.setMediaController(new MediaController(this));
     }
 
     //监听方法
@@ -117,6 +124,8 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             //底层准备播放完成监听
             @Override
             public void onPrepared(MediaPlayer mp) {
+                int duration = vv.getDuration();
+                seekbarVideo.setMax(duration);
                 vv.start();//开始播放
             }
         });
@@ -135,6 +144,33 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             public void onCompletion(MediaPlayer mp) {
                 Toast.makeText(SystemVideoPlayerActivity.this, "视频播放完成", Toast.LENGTH_SHORT).show();
                 finish();//退出当前页面
+            }
+        });
+
+        //设置Seekbar状态改变的监听
+        seekbarVideo.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            /**
+             *
+             * @param seekBar
+             * @param progress
+             * @param fromUser true:用户拖动改变的，false:系统更新改变的
+             */
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(fromUser){
+                    vv.seekTo(progress);
+                }
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
             }
         });
     }
